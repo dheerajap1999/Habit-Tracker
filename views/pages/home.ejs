@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Home</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
+      crossorigin="anonymous"
+    />
+
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+      crossorigin="anonymous"
+    ></script>
+    <link
+      href="//netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.css"
+      rel="stylesheet"
+    /> 
+
+  </head>
+  <body>
+    <header>
+      <div class="card shadow">
+        <p class="text-center fs-1 mt-3">Habbit Tracker</p>
+        <div class="container">
+            <div class="row justify-content-end">
+                <div class="col-auto mb-2">
+                    <button class="btn btn-primary"  data-bs-toggle="modal" data-bs-target="#TaskCreateModal" id="Create-Task"> Add Task </button> 
+                </div>
+            </div>
+        </div>
+      </div>
+    </header>
+    <main>
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-md-10">
+                    <div class="card shadow ">
+                        <div class="card-body">
+                            <table class="table table-bordered table-striped">
+                                <thead>
+                                <tr>
+                                    <th scope="col">ID</th>
+                                    <th scope="col">Task</th>
+                                    <th scope="col">Date</th>
+                                    <th scope="col">Status</th>
+                                    <th scope="col">Action</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <% let counter = 1; %>
+                                <% for(let index in data) { %>
+                                    <tr>
+                                        <td scope="row"><%= counter %></td>
+                                        <td>
+                                                <label class="form-label" for="flexCheckDefault">
+                                                    <%= data[index].taskName %>
+                                                </label>
+
+                                        </td>
+
+                                        <td>
+                                            <div class="md-form md-outline input-with-post-icon datepicker timepicker" >
+                                                <input placeholder="Select date" type="datetime-local" <%= data[index].status === 'Done' ? 'disabled' : '' %> id="Date-<%= index %>" value="<%= data[index].parsedDate %>" class="form-control text-black">
+                                            </div>
+                                        </td>
+
+                                        <td>
+                                            <select class="form-select " id="taskStatus-<%= index %>" aria-label="Default select example" <%= data[index].status === 'Done' ? 'disabled' : '' %>>
+                                                <% if (data[index].status === 'None') { %>
+                                                    <option selected disabled>None</option>
+                                                <% } else { %>
+                                                    <option disabled>None</option>
+                                                <% } %>
+                                                <option value="Done" <%= data[index].status === 'Done' ? 'selected' : '' %>>Done</option>
+                                                <option value="Not Done" <%= data[index].status === 'Not Done' ? 'selected' : '' %>>Not Done</option>
+                                            </select>
+
+                                        </td>
+                                        <td>
+                                            <div class="d-flex">
+                                                <button class="btn btn-info fw-bold <%= data[index].status === 'Done' ? 'disabled' : '' %>" onclick="updateTask('<%= data[index]._id %>','<%= index %>')" type="button">Update</button>
+                                                <button class="btn btn-danger fw-bold ml-2" onclick="deleteTask('<%= data[index]._id %>')" type="button">Delete</button>
+                                              </div>
+                                        </td>
+                                    </tr>
+                                    <% counter++; %>
+                                <% } %>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal -->
+        <div class="modal fade" id="TaskCreateModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Create Task</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                <form>
+                    <div class="mb-3">
+                        <label for="task-name" class="form-label">Task Name</label>
+                        <input type="email" class="form-control" id="task-name" aria-describedby="emailHelp">
+                    </div>
+                    <div class="mb-3">
+                        <label for="Date-time" class="form-label">Date</label>
+                        <input type="datetime-local" class="form-control" id="Date-time">
+                    </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" onclick="createTask()" class="btn btn-primary"  id="addTaskButton">Add</button>
+                </div>
+            </div>
+            </div>
+        </div>
+    </main>
+    <!-- Your EJS syntax for dynamic content goes here -->
+<script>
+
+    function updateTask(taskId,index) {
+    // Your update task logic here
+    const date = document.getElementById(`Date-${index}`)
+    const status = document.getElementById(`taskStatus-${index}`)
+
+    const payload = {
+        date:convertDateString(date.value),
+        status:status.value
+    }
+    fetch(`/update/${taskId}`,{
+        method:'POST',
+        headers:{
+            'Content-Type':'application/json'
+        },
+        body:JSON.stringify(payload)
+    })
+    .then(()=>{
+        window.location.reload()
+    })
+}
+    function convertDateString(dateString) {
+
+    // Parse the date string to create a Date object
+    const dateObject = new Date(dateString);
+
+    // Get the timestamp in milliseconds
+    const timestamp = dateObject.getTime();
+
+    return timestamp
+
+    }
+
+    function deleteTask(taskId) {
+    // Your delete task logic here
+    fetch(`/delete/${taskId}`,{
+        method:'DELETE',
+        headers:{
+            'Content-Type':'application/json'
+        },
+        body:JSON.stringify({taskId:taskId})
+    })
+    .then(()=>{
+        window.location.reload()
+    })
+    }
+    // Create task logic here
+    function createTask() {
+        // Get input values
+        var taskName = document.getElementById('task-name').value;
+        var dateTime = document.getElementById('Date-time').value;
+        const dateObject = new Date(dateTime);
+
+        // Get the timestamp in milliseconds
+        const timestamp = dateObject.getTime();
+
+
+        const payload = {
+                taskName: taskName,
+                date: timestamp
+            }
+            console.log(payload);
+
+        // Make a request to the server to add the task
+        fetch('/create', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Handle the response from the server
+            console.log(data);
+            if (data.status) {
+                // Task added successfully, you may close the modal or do other actions
+                window.location.reload()
+            } else {
+                // Handle the error, display a message, etc.
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            // Handle other errors if needed
+        })
+
+
+}
+
+</script>
+</body>
+</html>
