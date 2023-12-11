@@ -30,7 +30,7 @@ To install all the dependences of the project, run the following command:
 #### Source Code:
  - Link : https://github.com/dheerajap1999/Habit-Tracker
 
-
+### project hosted is [here](https://52.66.7.156:8000/)
 <p align="center">
   Show some :heart: by starring the repository.
 </p>
